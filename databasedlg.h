@@ -13,15 +13,17 @@ class DatabaseDlg : public QDialog
 	Q_OBJECT
 
 public:
-	explicit DatabaseDlg(QWidget *parent, Credentials &credentials);
+	explicit DatabaseDlg(QWidget *parent, QString &dsn);
 	~DatabaseDlg();
 
 private slots:
 	void on_DatabaseDlg_accepted();
 
+	void on_odbcButton_clicked();
+
 private:
 	Ui::DatabaseDlg *ui;
-	Credentials &credentials;
+	QString &dsn;
 };
 
 #endif // DATABASEDLG_H

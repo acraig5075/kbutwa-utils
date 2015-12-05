@@ -1,17 +1,15 @@
 #include "databasedlg.h"
 #include "ui_databasedlg.h"
+#include <QProcess>
 
-DatabaseDlg::DatabaseDlg(QWidget *parent, Credentials &credentials) :
+DatabaseDlg::DatabaseDlg(QWidget *parent, QString &dsn) :
 	QDialog(parent),
-	credentials(credentials),
+	dsn(dsn),
 	ui(new Ui::DatabaseDlg)
 {
 	ui->setupUi(this);
 
-	ui->userEdit->setText(credentials.user);
-	ui->passEdit->setText(credentials.pass);
-	ui->serverEdit->setText(credentials.server);
-	ui->databaseEdit->setText(credentials.database);
+	ui->dsnEdit->setText(dsn);
 }
 
 DatabaseDlg::~DatabaseDlg()
@@ -21,8 +19,15 @@ DatabaseDlg::~DatabaseDlg()
 
 void DatabaseDlg::on_DatabaseDlg_accepted()
 {
-	credentials.user = ui->userEdit->text();
-	credentials.pass = ui->passEdit->text();
-	credentials.server = ui->serverEdit->text();
-	credentials.database = ui->databaseEdit->text();
+	dsn = ui->dsnEdit->text();
+}
+
+/* Nice idea: Iterate HKLM\Software\Wow6432Node\ODBC\ODBC.INI\ODBC Data Sources and populate combobox instead.
+ */
+
+void DatabaseDlg::on_odbcButton_clicked()
+{
+	QProcess *process = new QProcess(this);
+	QString file = "c://windows//sysWOW64//odbcad32.exe";
+	process->start(file);
 }

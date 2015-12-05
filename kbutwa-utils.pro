@@ -15,7 +15,8 @@ QTPLUGIN += QSQLMYSQL
 
 SOURCES += main.cpp\
         widget.cpp \
-    databasedlg.cpp
+    databasedlg.cpp \
+    utils.cpp
 
 HEADERS  += widget.h \
     databasedlg.h \

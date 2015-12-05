@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <QSqlQuery>
+
 struct Credentials
 {
 	QString user = "root";
@@ -9,6 +11,12 @@ struct Credentials
 	QString database = "UnitTest";
 };
 
+namespace Utils
+{
+
+bool ExecQuery(QSqlQuery &query);
+
+}
 
 #endif // UTILS_H
 
