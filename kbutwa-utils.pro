@@ -4,13 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = kbutwa-utils
 TEMPLATE = app
 
+QTPLUGIN += QSQLMYSQL
 
 SOURCES += main.cpp\
         widget.cpp \

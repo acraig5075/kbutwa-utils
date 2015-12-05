@@ -2,6 +2,7 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <QtSql/QSqlDatabase>
 #include "utils.h"
 
 
@@ -26,6 +27,7 @@ private slots:
 private:
 	Ui::Widget *ui;
 	Credentials credentials;
+	QSqlDatabase db;
 };
 
 #endif // WIDGET_H

@@ -1,6 +1,8 @@
 #include "widget.h"
 #include "ui_widget.h"
 #include "databasedlg.h"
+#include <QSqlError>
+#include <QDebug>
 
 Widget::Widget(QWidget *parent) :
 	QWidget(parent),
@@ -22,12 +24,7 @@ Widget::~Widget()
 
 void Widget::setDatabaseStatus()
 {
-	if (credentials.database.isEmpty() || credentials.user.isEmpty())
-	{
-		ui->databaseLabel->setStyleSheet("QLabel { color : red; }");
-		ui->databaseLabel->setText("No database connection.");
-	}
-	else
+	if (db.isOpen())
 	{
 		QString status = QString("Connected to %1:%2 (%3)")
 				.arg(credentials.server)
@@ -35,6 +32,11 @@ void Widget::setDatabaseStatus()
 				.arg(credentials.user);
 		ui->databaseLabel->setStyleSheet("QLabel { color : green; }");
 		ui->databaseLabel->setText(status);
+	}
+	else
+	{
+		ui->databaseLabel->setStyleSheet("QLabel { color : red; }");
+		ui->databaseLabel->setText("No database connection.");
 	}
 }
 
@@ -46,6 +48,16 @@ void Widget::on_databaseButton_clicked()
 		// close current database
 		// reset controls to default
 		// open new database
+		db = QSqlDatabase::addDatabase("QMYSQL");
+		db.setHostName(credentials.server);
+		db.setDatabaseName(credentials.database);
+		db.setUserName(credentials.user);
+		db.setPassword(credentials.pass);
+		if (!db.open())
+		{
+			qDebug() << db.lastError();
+		}
+
 		// set database string
 		setDatabaseStatus();
 	}

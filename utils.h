@@ -3,10 +3,10 @@
 
 struct Credentials
 {
-	QString user;
-	QString pass;
-	QString server = "kbserver";
-	QString database = "UnitTesting";
+	QString user = "root";
+	QString pass = "Back2Reality";
+	QString server = "127.0.0.1";
+	QString database = "UnitTest";
 };
 
 
