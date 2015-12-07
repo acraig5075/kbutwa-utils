@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
+#include <QSqlRecord>
 
 
 namespace
@@ -31,6 +32,8 @@ Widget::Widget(QWidget *parent) :
 	ui->searchLabel->hide();
 	ui->previousSearchButton->hide();
 	ui->nextSearchButton->hide();
+
+	connect(this, SIGNAL(RefreshRHS()), this, SLOT(onRefreshRHS()));
 }
 
 Widget::~Widget()
@@ -161,7 +164,7 @@ void Widget::setup()
 
 // RHS
 QString sqlFeatures = "SELECT TestID, FeatureID, FeatName FROM featuretbl WHERE TestID = :id";
-QString sqlRegressions = "SELECT RegressionTestID, TestFix FROM regtesttbl WHERE moduleID = :id";
+QString sqlRegressions = "SELECT ModuleID, RegressionTestID, TestFix FROM regtesttbl WHERE ModuleID = :id";
 
 // LHS
 QString sqlComponents = "SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID";
@@ -181,7 +184,7 @@ void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWid
 		case TestProperties::CDC:
 		case TestProperties::ACC:
 			if (props.testID > 0)
-				populateRHS(sqlFeatures, props.testID);
+				populateRHS({ RHS_Features, sqlFeatures, props.testID });
 			else if (props.moduleID > 0 && !hasChildren)
 				populateLHS(current, sqlComponents, props);
 			break;
@@ -189,7 +192,7 @@ void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWid
 		case TestProperties::CDR:
 		case TestProperties::ACR:
 			if (props.moduleID > 0)
-				populateRHS(sqlRegressions, props.moduleID);
+				populateRHS({ RHS_Regressions, sqlRegressions, props.moduleID });
 			break;
 		}
 
@@ -198,21 +201,26 @@ void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWid
 	}
 }
 
-void Widget::populateRHS(QString &select, int id)
+void Widget::populateRHS(const RHS_Settings &settings)
 {
 	ui->tableView->setModel(nullptr);
 	ui->tableView->verticalHeader()->hide();
 	ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 	QSqlQuery query;
-	query.prepare(select);
-	query.bindValue(":id", id);
+	query.prepare(settings.query);
+	query.bindValue(":id", settings.id);
 
 	if (Utils::ExecQuery(query))
 	{
 		auto model = new QSqlQueryModel(this);
 		model->setQuery(query);
 		ui->tableView->setModel(model);
+		rhsSettings = settings;
+	}
+	else
+	{
+		rhsSettings.type = RHS_None;
 	}
 
 	ui->tableView->show();
@@ -251,4 +259,116 @@ void Widget::on_tableView_clicked(const QModelIndex &)
 	ui->deleteFeatureButton->setEnabled(enabled);
 	ui->viewFeatureButton->setEnabled(enabled);
 	ui->moveFeatureButton->setEnabled(enabled);
+}
+
+void Widget::DeleteFeature(int testID, int featureID)
+{
+	QSqlQuery select;
+	select.prepare("SELECT FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+	if (Utils::ExecQuery(select))
+	{
+		if (select.size() == 1)
+		{
+			auto confirm = QMessageBox::question(this, "Delete", "Are you sure you want to delete this record?");
+			if (confirm == QMessageBox::Yes)
+			{
+				db.transaction();
+
+				QSqlQuery modify1;
+				modify1.prepare("DELETE FROM resulttbl WHERE FeatureID = :featureID");
+				modify1.bindValue(":featureID", featureID);
+				Utils::ExecQuery(modify1);
+
+				QSqlQuery modify2;
+				modify2.prepare("DELETE FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+				modify2.bindValue(":featureID", featureID);
+				modify2.bindValue(":testID", testID);
+				Utils::ExecQuery(modify2);
+
+				if (db.commit())
+				{
+					emit RefreshRHS();
+				}
+				else
+				{
+					db.rollback();
+				}
+			}
+		}
+		else
+		{
+			QMessageBox::critical(this, "Error", "Unexpectantly found nothing to delete");
+		}
+	}
+}
+
+void Widget::DeleteRegression(int moduleID, int regTestID)
+{
+	auto confirm = QMessageBox::question(this, "Delete", "Are you sure you want to delete this record?");
+	if (confirm == QMessageBox::Yes)
+	{
+		db.transaction();
+
+		QSqlQuery modify1;
+		modify1.prepare("DELETE FROM regresulttbl WHERE RegressionTestID = :regTestID");
+		modify1.bindValue(":regTestID", regTestID);
+		Utils::ExecQuery(modify1);
+
+		QSqlQuery modify2;
+		modify2.prepare("DELETE FROM regtesttbl WHERE ModuleID = :moduleID AND RegressionTestID = :regTestID");
+		modify2.bindValue(":moduleID", moduleID);
+		modify2.bindValue(":regTestID", regTestID);
+		Utils::ExecQuery(modify2);
+
+		if (db.commit())
+		{
+			emit RefreshRHS();
+		}
+		else
+		{
+			db.rollback();
+		}
+	}
+}
+
+void Widget::onRefreshRHS()
+{
+	QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
+	if (model)
+		model->setQuery("");
+}
+
+void Widget::on_deleteFeatureButton_clicked()
+{
+	auto selectionModel = ui->tableView->selectionModel();
+	if (selectionModel)
+	{
+		auto selectionList = selectionModel->selectedRows();
+		if (selectionList.size() == 1)
+		{
+			QModelIndex index = selectionList.at(0);
+			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
+
+			if (model)
+			{
+				QSqlRecord record = model->record(index.row());
+				if (RHS_Features == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					int testID = record.value("TestID").toInt(&ok1);
+					int featureID = record.value("FeatureID").toInt(&ok2);
+					if (ok1 && ok2)
+						DeleteFeature(testID, featureID);
+				}
+				else if (RHS_Regressions == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					int moduleID = record.value("ModuleID").toInt(&ok1);
+					int regTestID = record.value("RegressionTestID").toInt(&ok2);
+					if (ok1 && ok2)
+						DeleteRegression(moduleID, regTestID);
+				}
+			}
+		}
+	}
 }
