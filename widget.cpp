@@ -163,8 +163,14 @@ void Widget::setup()
 }
 
 // RHS
-QString sqlFeatures = "SELECT TestID, FeatureID, FeatName FROM featuretbl WHERE TestID = :id";
-QString sqlRegressions = "SELECT ModuleID, RegressionTestID, TestFix FROM regtesttbl WHERE ModuleID = :id";
+QString sqlFeatures = "SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'Number', f.TestID, f.FeatureID, f.FeatName "
+		"FROM featuretbl AS f "
+		"INNER JOIN testtbl AS t ON f.TestID = t.TestID "
+		"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+		"WHERE t.TestID = :id";
+QString sqlRegressions = "SELECT TestName AS 'Number', ModuleID, RegressionTestID, TestFix "
+		"FROM regtesttbl "
+		"WHERE ModuleID = :id";
 
 // LHS
 QString sqlComponents = "SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID";
@@ -216,6 +222,8 @@ void Widget::populateRHS(const RHS_Settings &settings)
 		auto model = new QSqlQueryModel(this);
 		model->setQuery(query);
 		ui->tableView->setModel(model);
+		ui->tableView->hideColumn(1);
+		ui->tableView->hideColumn(2);
 		ui->tableView->horizontalHeader()->setStretchLastSection(true);
 		rhsSettings = settings;
 	}
