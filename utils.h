@@ -15,6 +15,7 @@ namespace Utils
 {
 
 bool ExecQuery(QSqlQuery &query);
+int QuerySize(QSqlQuery &query);
 
 }
 

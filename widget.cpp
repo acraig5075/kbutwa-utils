@@ -216,6 +216,7 @@ void Widget::populateRHS(const RHS_Settings &settings)
 		auto model = new QSqlQueryModel(this);
 		model->setQuery(query);
 		ui->tableView->setModel(model);
+		ui->tableView->horizontalHeader()->setStretchLastSection(true);
 		rhsSettings = settings;
 	}
 	else
@@ -264,14 +265,20 @@ void Widget::on_tableView_clicked(const QModelIndex &)
 void Widget::DeleteFeature(int testID, int featureID)
 {
 	QSqlQuery select;
-	select.prepare("SELECT FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+	select.prepare("SELECT CONCAT(TestNumber, '_', FeatNumber) AS FeatureFormattedName FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+	select.bindValue(":featureID", featureID);
+	select.bindValue(":testID", testID);
+
 	if (Utils::ExecQuery(select))
 	{
-		if (select.size() == 1)
+		int size = Utils::QuerySize(select);
+		if (size == 1)
 		{
-			auto confirm = QMessageBox::question(this, "Delete", "Are you sure you want to delete this record?");
+			QString name = select.value("FeatureFormattedName").toString();
+			auto confirm = QMessageBox::question(this, "Delete", QString("Are you sure you want to delete feature %1?").arg(name));
 			if (confirm == QMessageBox::Yes)
 			{
+				select.finish();
 				db.transaction();
 
 				QSqlQuery modify1;
@@ -297,7 +304,7 @@ void Widget::DeleteFeature(int testID, int featureID)
 		}
 		else
 		{
-			QMessageBox::critical(this, "Error", "Unexpectantly found nothing to delete");
+			QMessageBox::critical(this, "Error", QString("Unexpectantly found %1 records to delete, when expecting only one").arg(size));
 		}
 	}
 }

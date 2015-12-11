@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <QSqlError>
 #include <QDebug>
+#include <QSqlDriver>
 
 
 namespace Utils
@@ -29,4 +30,24 @@ bool ExecQuery(QSqlQuery &query)
 	}
 }
 
+int QuerySize(QSqlQuery &query)
+{
+	int size = -1;
+	if (query.isActive() && query.isSelect())
+	{
+		if (query.driver()->hasFeature(QSqlDriver::QuerySize))
+		{
+			size = query.size();
+		}
+		else
+		{
+			size = 0;
+			while (query.next())
+				size++;
+		}
+	}
+
+	query.first();
+	return size;
+}
 }
