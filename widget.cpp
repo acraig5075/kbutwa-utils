@@ -10,13 +10,13 @@
 #include <QSqlRecord>
 
 
-namespace
-{
-bool canDelete(const TestProperties &props)
-{
-	return props.testID > 0 && props.moduleID > 0 && props.testType > 0;
-}
-}
+//namespace
+//{
+//bool canDelete(const TestProperties &props)
+//{
+//	return props.testID > 0 && props.moduleID > 0 && props.testType > 0;
+//}
+//}
 
 
 Widget::Widget(QWidget *parent) :
@@ -164,21 +164,19 @@ void Widget::setup()
 
 // RHS
 QString sqlFeatures = "SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'Number', f.TestID, f.FeatureID, f.FeatName "
-		"FROM featuretbl AS f "
-		"INNER JOIN testtbl AS t ON f.TestID = t.TestID "
-		"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
-		"WHERE t.TestID = :id";
+					  "FROM featuretbl AS f "
+					  "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
+					  "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+					  "WHERE t.TestID = :id";
 QString sqlRegressions = "SELECT TestName AS 'Number', ModuleID, RegressionTestID, TestFix "
-		"FROM regtesttbl "
-		"WHERE ModuleID = :id";
+						 "FROM regtesttbl "
+						 "WHERE ModuleID = :id";
 
 // LHS
 QString sqlComponents = "SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID";
 
 void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
-	ui->deleteComponentButton->setEnabled(false);
-
 	QVariant var = current->data(0, Qt::UserRole);
 	if (!var.isNull() && var.isValid())
 	{
@@ -201,9 +199,6 @@ void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWid
 				populateRHS({ RHS_Regressions, sqlRegressions, props.moduleID });
 			break;
 		}
-
-		if (canDelete(props))
-			ui->deleteComponentButton->setEnabled(true);
 	}
 }
 
@@ -233,6 +228,8 @@ void Widget::populateRHS(const RHS_Settings &settings)
 	}
 
 	ui->tableView->show();
+	int rhsCount = ui->tableView->model()->rowCount();
+	ui->deleteComponentButton->setEnabled(rhsCount == 0);
 }
 
 void Widget::populateLHS(QTreeWidgetItem *parent, const QString &select, const TestProperties &props)
@@ -292,22 +289,23 @@ void Widget::DeleteFeature(int testID, int featureID)
 				QSqlQuery modify1;
 				modify1.prepare("DELETE FROM resulttbl WHERE FeatureID = :featureID");
 				modify1.bindValue(":featureID", featureID);
-				Utils::ExecQuery(modify1);
+				bool ok1 = Utils::ExecQuery(modify1);
 
 				QSqlQuery modify2;
 				modify2.prepare("DELETE FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
 				modify2.bindValue(":featureID", featureID);
 				modify2.bindValue(":testID", testID);
-				Utils::ExecQuery(modify2);
+				bool ok2 = Utils::ExecQuery(modify2);
 
-				if (db.commit())
+				if (ok1 && ok2)
 				{
-					emit RefreshRHS();
+					if (db.commit())
+					{
+						emit RefreshRHS();
+						return;
+					}
 				}
-				else
-				{
-					db.rollback();
-				}
+				db.rollback();
 			}
 		}
 		else
@@ -327,22 +325,23 @@ void Widget::DeleteRegression(int moduleID, int regTestID)
 		QSqlQuery modify1;
 		modify1.prepare("DELETE FROM regresulttbl WHERE RegressionTestID = :regTestID");
 		modify1.bindValue(":regTestID", regTestID);
-		Utils::ExecQuery(modify1);
+		bool ok1 = Utils::ExecQuery(modify1);
 
 		QSqlQuery modify2;
 		modify2.prepare("DELETE FROM regtesttbl WHERE ModuleID = :moduleID AND RegressionTestID = :regTestID");
 		modify2.bindValue(":moduleID", moduleID);
 		modify2.bindValue(":regTestID", regTestID);
-		Utils::ExecQuery(modify2);
+		bool ok2 = Utils::ExecQuery(modify2);
 
-		if (db.commit())
+		if (ok1 && ok2)
 		{
-			emit RefreshRHS();
+			if (db.commit())
+			{
+				emit RefreshRHS();
+				return;
+			}
 		}
-		else
-		{
-			db.rollback();
-		}
+		db.rollback();
 	}
 }
 
@@ -350,7 +349,20 @@ void Widget::onRefreshRHS()
 {
 	QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
 	if (model)
-		model->setQuery("");
+	{
+		QSqlQuery query;
+		query.prepare(rhsSettings.query);
+		query.bindValue(":id", rhsSettings.id);
+
+		Utils::ExecQuery(query);
+		model->setQuery(query);
+
+		int rhsCount = model->rowCount();
+		ui->deleteComponentButton->setEnabled(rhsCount == 0);
+		ui->deleteFeatureButton->setEnabled(false);
+		ui->viewFeatureButton->setEnabled(false);
+		ui->moveFeatureButton->setEnabled(false);
+	}
 }
 
 void Widget::on_deleteFeatureButton_clicked()
