@@ -16,11 +16,14 @@ QTPLUGIN += QSQLMYSQL
 SOURCES += main.cpp\
         widget.cpp \
     databasedlg.cpp \
-    utils.cpp
+    utils.cpp \
+    movetargetdlg.cpp
 
 HEADERS  += widget.h \
     databasedlg.h \
-    utils.h
+    utils.h \
+    movetargetdlg.h
 
 FORMS    += widget.ui \
-    databasedlg.ui
+    databasedlg.ui \
+    movetargetdlg.ui

@@ -30,6 +30,17 @@ bool ExecQuery(QSqlQuery &query)
 	}
 }
 
+QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop, const QString &value)
+{
+	auto item = new QTreeWidgetItem(QStringList(value));
+	auto data = QVariant::fromValue(prop);
+	item->setData(0, Qt::UserRole, data);
+	if (parent)
+		parent->addChild(item);
+	return item;
+}
+
+
 int QuerySize(QSqlQuery &query)
 {
 	int size = -1;

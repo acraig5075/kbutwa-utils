@@ -1,6 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
 #include "databasedlg.h"
+#include "movetargetdlg.h"
 #include "utils.h"
 #include <QSqlError>
 #include <QDebug>
@@ -111,22 +112,12 @@ void Widget::on_Widget_destroyed()
 	db.close();
 }
 
-QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop, const QString &value)
-{
-	auto item = new QTreeWidgetItem(QStringList(value));
-	auto data = QVariant::fromValue(prop);
-	item->setData(0, Qt::UserRole, data);
-	if (parent)
-		parent->addChild(item);
-	return item;
-}
-
 void Widget::setup()
 {
-	auto cdcItem = NewTreeItem(nullptr, { TestProperties::CDC }, "Civil Designer component");
-	auto cdrItem = NewTreeItem(nullptr, { TestProperties::CDR }, "Civil Designer regression");
-	auto accItem = NewTreeItem(nullptr, { TestProperties::ACC }, "AllyCAD component");
-	auto acrItem = NewTreeItem(nullptr, { TestProperties::ACR }, "AllyCAD regression");
+	auto cdcItem = Utils::NewTreeItem(nullptr, { TestProperties::CDC }, "Civil Designer component");
+	auto cdrItem = Utils::NewTreeItem(nullptr, { TestProperties::CDR }, "Civil Designer regression");
+	auto accItem = Utils::NewTreeItem(nullptr, { TestProperties::ACC }, "AllyCAD component");
+	auto acrItem = Utils::NewTreeItem(nullptr, { TestProperties::ACR }, "AllyCAD regression");
 
 	QSqlQuery query;
 	query.prepare("SELECT ModuleID, ModuleName FROM moduletbl");
@@ -140,16 +131,16 @@ void Widget::setup()
 
 			if (id <= 10)
 			{
-				NewTreeItem(cdcItem, { TestProperties::CDC, id }, name);
-				NewTreeItem(cdrItem, { TestProperties::CDR, id }, name);
+				Utils::NewTreeItem(cdcItem, { TestProperties::CDC, id }, name);
+				Utils::NewTreeItem(cdrItem, { TestProperties::CDR, id }, name);
 			}
 			else if (id <= 25)
 			{
-				NewTreeItem(accItem, { TestProperties::ACC, id }, name);
+				Utils::NewTreeItem(accItem, { TestProperties::ACC, id }, name);
 			}
 			else if (id == 26)
 			{
-				NewTreeItem(acrItem, { TestProperties::ACR, id }, name);
+				Utils::NewTreeItem(acrItem, { TestProperties::ACR, id }, name);
 			}
 		}
 	}
@@ -245,7 +236,7 @@ void Widget::populateLHS(QTreeWidgetItem *parent, const QString &select, const T
 			QString testName = query.value("TestName").toString();
 			int testID = query.value("TestID").toInt();
 
-			NewTreeItem(parent, { props.testType, props.moduleID, testID }, testName);
+			Utils::NewTreeItem(parent, { props.testType, props.moduleID, testID }, testName);
 		}
 
 		ui->treeWidget->expandItem(parent);
@@ -395,6 +386,49 @@ void Widget::on_deleteFeatureButton_clicked()
 					if (ok1 && ok2)
 						DeleteRegression(moduleID, regTestID);
 				}
+			}
+		}
+	}
+}
+
+void Widget::on_moveFeatureButton_clicked()
+{
+	auto selectionModel = ui->tableView->selectionModel();
+	if (selectionModel)
+	{
+		auto selectionList = selectionModel->selectedRows();
+		if (selectionList.size() == 1)
+		{
+			QModelIndex index = selectionList.at(0);
+			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
+
+			int moduleID = 0;
+
+			if (model)
+			{
+				QSqlRecord record = model->record(index.row());
+				if (RHS_Features == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					int testID = record.value("TestID").toInt(&ok1);
+					int featureID = record.value("FeatureID").toInt(&ok2);
+					if (ok1 && ok2)
+					{}
+				}
+				else if (RHS_Regressions == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					moduleID = record.value("ModuleID").toInt(&ok1);
+					int regTestID = record.value("RegressionTestID").toInt(&ok2);
+					if (ok1 && ok2)
+					{
+					}
+				}
+			}
+
+			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID);
+			if (dlg->exec() == QDialog::Accepted)
+			{
 			}
 		}
 	}

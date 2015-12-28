@@ -28,6 +28,6 @@ void DatabaseDlg::on_DatabaseDlg_accepted()
 void DatabaseDlg::on_odbcButton_clicked()
 {
 	QProcess *process = new QProcess(this);
-	QString file = "c://windows//sysWOW64//odbcad32.exe";
+	QString file = "c:\\windows\\sysWOW64\\odbcad32.exe";
 	process->start(file);
 }

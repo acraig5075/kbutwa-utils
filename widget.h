@@ -1,39 +1,19 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
+#include "utils.h"
 #include <QWidget>
 #include <QtSql/QSqlDatabase>
-#include <QTreeWidgetItem>
 
 
 namespace Ui {
 class Widget;
 }
 
-struct TestProperties
-{
-	enum TestType { CDC = 1, CDR, ACC, ACR };
-
-	int testType = 0;
-	int moduleID = 0;
-	int testID = 0;
-
-	TestProperties() = default;
-
-	TestProperties(int testType, int moduleID = 0, int testID = 0)
-		: testType(testType)
-		, moduleID(moduleID)
-		, testID(testID)
-	{}
-};
-Q_DECLARE_METATYPE(TestProperties)
-
 
 class Widget : public QWidget
 {
 	Q_OBJECT
-
-	enum RHSType { RHS_None, RHS_Features, RHS_Regressions };
 
 	struct RHS_Settings
 	{
@@ -68,6 +48,8 @@ private slots:
 	void on_tableView_clicked(const QModelIndex &index);
 	void on_deleteFeatureButton_clicked();
 	void onRefreshRHS();
+
+	void on_moveFeatureButton_clicked();
 
 signals:
 	void RefreshRHS();
