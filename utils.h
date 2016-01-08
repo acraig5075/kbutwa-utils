@@ -42,6 +42,8 @@ int QuerySize(QSqlQuery &query);
 QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop, const QString &value);
 void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props);
 
+bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID);
+
 }
 
 #endif // UTILS_H

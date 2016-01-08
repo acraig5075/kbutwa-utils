@@ -388,6 +388,7 @@ void Widget::on_moveFeatureButton_clicked()
 			QModelIndex index = selectionList.at(0);
 			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
 
+			int featureID = 0;
 			int moduleID = 0;
 			int testID = 0 ;
 
@@ -398,7 +399,7 @@ void Widget::on_moveFeatureButton_clicked()
 				{
 					bool ok1, ok2;
 					testID = record.value("TestID").toInt(&ok1);
-					int featureID = record.value("FeatureID").toInt(&ok2);
+					featureID = record.value("FeatureID").toInt(&ok2);
 					if (ok1 && ok2)
 					{}
 				}
@@ -413,9 +414,13 @@ void Widget::on_moveFeatureButton_clicked()
 				}
 			}
 
-			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, testID);
+			int targetTestID = testID;
+
+			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, targetTestID);
 			if (dlg->exec() == QDialog::Accepted)
 			{
+				if (Utils::MoveFeature(this, featureID, testID, targetTestID))
+					emit RefreshRHS();
 			}
 		}
 	}

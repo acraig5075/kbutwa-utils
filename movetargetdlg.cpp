@@ -115,7 +115,6 @@ void MoveTargetDlg::on_MoveTargetDlg_accepted()
 			TestProperties props = var.value<TestProperties>();
 			m_moduleID = props.moduleID;
 			m_testID = props.testID;
-			QMessageBox::information(this, "Debug info", QString("Target module = %1, test = %2").arg(m_moduleID).arg(m_testID));
 			return;
 		}
 		else

@@ -2,6 +2,8 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QSqlDriver>
+#include <QtGlobal>
+#include <QMessageBox>
 
 
 namespace Utils
@@ -82,4 +84,68 @@ int QuerySize(QSqlQuery &query)
 	query.first();
 	return size;
 }
+
+bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID)
+{
+	bool isValid = featureID > 0 && srcTestID > 0 && targetTestID > 0 && srcTestID != targetTestID;
+
+	QString error;
+
+	Q_ASSERT(isValid);
+	if (isValid)
+	{
+		QSqlDatabase db = QSqlDatabase::database();
+		db.transaction();
+
+		QSqlQuery lookup;
+		lookup.prepare("SELECT RIGHT(CONCAT('000', CAST(MAX(f.FeatNumber) + 1 AS CHAR(3))),3) AS NextFeatNum, t.TestNumber "
+					   "FROM featuretbl AS f "
+					   "INNER JOIN testtbl as t on f.TestID = t.testID "
+					   "where f.TestID = :testID");
+		lookup.bindValue(":testID", targetTestID);
+
+		error = lookup.lastQuery();
+
+		if (ExecQuery(lookup))
+		{
+			if (lookup.next())
+			{
+				QString featNumber = lookup.value("NextFeatNum").toString();
+				QString testNumber = lookup.value("TestNumber").toString();
+
+				if (!featNumber.isEmpty() && !testNumber.isEmpty())
+				{
+					QSqlQuery update;
+					update.prepare("UPDATE featuretbl SET "
+								   "TestID = :testID, "
+								   "FeatNumber = :featNumber, "
+								   "TestNumber = :testNumber "
+								   "WHERE FeatureID = :featureID");
+					update.bindValue(":testID", targetTestID);
+					update.bindValue(":featNumber", featNumber);
+					update.bindValue(":testNumber", testNumber);
+					update.bindValue(":featureID", featureID);
+
+					if (ExecQuery(update))
+					{
+						db.commit();
+						return true;
+					}
+					else
+					{
+						error = update.lastQuery();
+					}
+				}
+			}
+		}
+
+		db.rollback();
+	}
+	else
+		error = QString("Invalid input with parameters featureID = %1, srcTestID = %2, targetTestID = %3").arg(featureID).arg(srcTestID).arg(targetTestID);
+
+	QMessageBox::critical(parent, "Error", error);
+	return false;
+}
+
 }
