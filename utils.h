@@ -37,9 +37,10 @@ namespace Utils
 {
 
 bool ExecQuery(QSqlQuery &query);
-QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop, const QString &value);
 int QuerySize(QSqlQuery &query);
 
+QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop, const QString &value);
+void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props);
 
 }
 

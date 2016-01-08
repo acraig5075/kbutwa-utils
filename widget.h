@@ -36,7 +36,7 @@ private:
 	void disableButtons();
 	void setup();
 	void populateRHS(const RHS_Settings &settings);
-	void populateLHS(QTreeWidgetItem *parent, const QString &select, const TestProperties &props);
+	void populateLHS(QTreeWidgetItem *parent, const QString &, const TestProperties &props);
 	void DeleteFeature(int testID, int featureID);
 	void DeleteRegression(int moduleID, int regTestID);
 

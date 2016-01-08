@@ -223,24 +223,10 @@ void Widget::populateRHS(const RHS_Settings &settings)
 	ui->deleteComponentButton->setEnabled(rhsCount == 0);
 }
 
-void Widget::populateLHS(QTreeWidgetItem *parent, const QString &select, const TestProperties &props)
+void Widget::populateLHS(QTreeWidgetItem *parent, const QString &, const TestProperties &props)
 {
-	QSqlQuery query;
-	query.prepare(select);
-	query.bindValue(":moduleID", props.moduleID);
-
-	if (Utils::ExecQuery(query))
-	{
-		while (query.next())
-		{
-			QString testName = query.value("TestName").toString();
-			int testID = query.value("TestID").toInt();
-
-			Utils::NewTreeItem(parent, { props.testType, props.moduleID, testID }, testName);
-		}
-
-		ui->treeWidget->expandItem(parent);
-	}
+	Utils::ComponentTestsSubtree(parent, props);
+	ui->treeWidget->expandItem(parent);
 }
 
 void Widget::on_tableView_clicked(const QModelIndex &)
@@ -403,6 +389,7 @@ void Widget::on_moveFeatureButton_clicked()
 			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
 
 			int moduleID = 0;
+			int testID = 0 ;
 
 			if (model)
 			{
@@ -410,7 +397,7 @@ void Widget::on_moveFeatureButton_clicked()
 				if (RHS_Features == rhsSettings.type)
 				{
 					bool ok1, ok2;
-					int testID = record.value("TestID").toInt(&ok1);
+					testID = record.value("TestID").toInt(&ok1);
 					int featureID = record.value("FeatureID").toInt(&ok2);
 					if (ok1 && ok2)
 					{}
@@ -426,7 +413,7 @@ void Widget::on_moveFeatureButton_clicked()
 				}
 			}
 
-			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID);
+			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, testID);
 			if (dlg->exec() == QDialog::Accepted)
 			{
 			}

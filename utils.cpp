@@ -41,6 +41,27 @@ QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop
 }
 
 
+void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props)
+{
+	QSqlQuery query;
+	query.prepare("SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID");
+	query.bindValue(":moduleID", props.moduleID);
+
+	if (Utils::ExecQuery(query))
+	{
+		while (query.next())
+		{
+			QString testName = query.value("TestName").toString();
+			int testID = query.value("TestID").toInt();
+
+			NewTreeItem(parent, { props.testType, props.moduleID, testID }, testName);
+		}
+
+		// you may want to now call expandItem(parent);
+	}
+}
+
+
 int QuerySize(QSqlQuery &query)
 {
 	int size = -1;
