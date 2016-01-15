@@ -43,6 +43,8 @@ QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop
 void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props);
 
 bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID);
+int CountFeatures(int testID);
+bool DeleteFeature(QWidget *parent, int moduleID, int testID);
 
 }
 

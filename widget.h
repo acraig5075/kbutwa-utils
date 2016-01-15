@@ -50,6 +50,7 @@ private slots:
 	void onRefreshRHS();
 
 	void on_moveFeatureButton_clicked();
+	void on_deleteComponentButton_clicked();
 
 signals:
 	void RefreshRHS();

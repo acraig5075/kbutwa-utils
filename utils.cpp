@@ -148,4 +148,48 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 	return false;
 }
 
+int CountFeatures(int testID)
+{
+	QSqlQuery count;
+	count.prepare("SELECT COUNT(1) FROM featuretbl WHERE TestID = :testID");
+	count.bindValue(":testID", testID);
+
+	if (ExecQuery(count))
+	{
+		if (count.next())
+		{
+			bool ok;
+			int numFeatures = count.value(0).toInt(&ok);
+			if (ok)
+				return numFeatures;
+		}
+	}
+
+	return -1;
+}
+
+bool DeleteFeature(QWidget *parent, int moduleID, int testID)
+{
+	if (QMessageBox::Yes == QMessageBox::question(parent, "Delete", "Proceed with deletion?", QMessageBox::Yes|QMessageBox::No))
+	{
+		QSqlQuery deletion;
+		deletion.prepare("DELETE FROM testtbl WHERE ModuleID = :moduleID AND TestID = :testID");
+		deletion.bindValue(":moduleID", moduleID);
+		deletion.bindValue(":testID", testID);
+
+		if (ExecQuery(deletion))
+		{
+			return true;
+		}
+		else
+		{
+			QMessageBox::critical(parent, "Error", QString("Unable to delete from TestTbl with ModuleID %1 and TestID %2")
+								  .arg(moduleID)
+								  .arg(testID));
+		}
+	}
+
+	return false;
+}
+
 }

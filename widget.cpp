@@ -168,6 +168,8 @@ QString sqlComponents = "SELECT TestName, TestID from testtbl WHERE ModuleID = :
 
 void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
+	ui->deleteComponentButton->setEnabled(false);
+
 	QVariant var = current->data(0, Qt::UserRole);
 	if (!var.isNull() && var.isValid())
 	{
@@ -391,6 +393,7 @@ void Widget::on_moveFeatureButton_clicked()
 			int featureID = 0;
 			int moduleID = 0;
 			int testID = 0 ;
+			bool valid = false;
 
 			if (model)
 			{
@@ -400,27 +403,72 @@ void Widget::on_moveFeatureButton_clicked()
 					bool ok1, ok2;
 					testID = record.value("TestID").toInt(&ok1);
 					featureID = record.value("FeatureID").toInt(&ok2);
-					if (ok1 && ok2)
-					{}
+					valid = (ok1 && ok2);
 				}
 				else if (RHS_Regressions == rhsSettings.type)
 				{
 					bool ok1, ok2;
 					moduleID = record.value("ModuleID").toInt(&ok1);
 					int regTestID = record.value("RegressionTestID").toInt(&ok2);
-					if (ok1 && ok2)
-					{
-					}
+					valid = (ok1 && ok2);
 				}
 			}
 
-			int targetTestID = testID;
-
-			MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, targetTestID);
-			if (dlg->exec() == QDialog::Accepted)
+			if (valid)
 			{
-				if (Utils::MoveFeature(this, featureID, testID, targetTestID))
-					emit RefreshRHS();
+				int targetTestID = testID;
+
+				MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, targetTestID);
+				if (dlg->exec() == QDialog::Accepted)
+				{
+					if (Utils::MoveFeature(this, featureID, testID, targetTestID))
+					{
+						emit RefreshRHS();
+						QMessageBox::information(this, "Done", R"(You should now manually edit the test procedure and rename any test files on N:\ to refer to the new test number.)");
+					}
+				}
+			}
+		}
+	}
+}
+
+void Widget::on_deleteComponentButton_clicked()
+{
+	QTreeWidgetItem *current = ui->treeWidget->currentItem();
+	if (current->childCount() == 0)
+	{
+		QVariant var = current->data(0, Qt::UserRole);
+		if (!var.isNull() && var.isValid())
+		{
+			TestProperties props = var.value<TestProperties>();
+
+			if (props.testType == TestProperties::CDC || props.testType == TestProperties::ACC)
+			{
+				if (props.moduleID > 0 && props.testID > 0)
+				{
+					int count = Utils::CountFeatures(props.testID);
+
+					if (count == 0)
+					{
+						if (Utils::DeleteFeature(this, props.moduleID, props.testID))
+						{
+							QTreeWidgetItem *parentItem = current->parent();
+							parentItem->removeChild(current);
+						}
+					}
+					else
+					{
+						QMessageBox::critical(this, "Error", QString("Expected no features having ModuleID %1, TestID %2, instead found %3 feature(s).")
+											  .arg(props.moduleID)
+											  .arg(props.testID)
+											  .arg(count));
+					}
+				}
+			}
+			else
+			{
+				QMessageBox::information(this, "Unsupported", "Only deletion of components having no features is currently supported.\n"
+							"Use the Delete button on the right if you wish to delete a feature or regression.");
 			}
 		}
 	}
