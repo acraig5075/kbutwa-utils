@@ -345,7 +345,7 @@ void Widget::onRefreshRHS()
 	}
 }
 
-void Widget::on_deleteFeatureButton_clicked()
+void Widget::GenericRHSOperation(void (Widget::*featureFunc)(int, int), void (Widget::*regressionFunc)(int, int))
 {
 	auto selectionModel = ui->tableView->selectionModel();
 	if (selectionModel)
@@ -365,7 +365,12 @@ void Widget::on_deleteFeatureButton_clicked()
 					int testID = record.value("TestID").toInt(&ok1);
 					int featureID = record.value("FeatureID").toInt(&ok2);
 					if (ok1 && ok2)
-						DeleteFeature(testID, featureID);
+					{
+						if (featureFunc)
+							(this->*featureFunc)(testID, featureID);
+						else
+							QMessageBox::information(this, "Unsupported", "The chosen operation is currently unsupported for Feature tests");
+					}
 				}
 				else if (RHS_Regressions == rhsSettings.type)
 				{
@@ -373,62 +378,45 @@ void Widget::on_deleteFeatureButton_clicked()
 					int moduleID = record.value("ModuleID").toInt(&ok1);
 					int regTestID = record.value("RegressionTestID").toInt(&ok2);
 					if (ok1 && ok2)
-						DeleteRegression(moduleID, regTestID);
+					{
+						if (regressionFunc)
+							(this->*regressionFunc)(moduleID, regTestID);
+						else
+							QMessageBox::information(this, "Unsupported", "The chosen operation is currently unsupported for Regression tests");
+					}
 				}
 			}
 		}
 	}
 }
 
+void Widget::on_deleteFeatureButton_clicked()
+{
+	GenericRHSOperation(&Widget::DeleteFeature, &Widget::DeleteRegression);
+}
+
 void Widget::on_moveFeatureButton_clicked()
 {
-	auto selectionModel = ui->tableView->selectionModel();
-	if (selectionModel)
+	GenericRHSOperation(&Widget::MoveFeature, nullptr);
+}
+
+void Widget::on_viewFeatureButton_clicked()
+{
+	GenericRHSOperation(&Widget::ViewFeature, nullptr);
+}
+
+void Widget::MoveFeature(int testID, int featureID)
+{
+	int targetTestID = testID;
+	int moduleID = 0;
+
+	MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, targetTestID);
+	if (dlg->exec() == QDialog::Accepted)
 	{
-		auto selectionList = selectionModel->selectedRows();
-		if (selectionList.size() == 1)
+		if (Utils::MoveFeature(this, featureID, testID, targetTestID))
 		{
-			QModelIndex index = selectionList.at(0);
-			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
-
-			int featureID = 0;
-			int moduleID = 0;
-			int testID = 0 ;
-			bool valid = false;
-
-			if (model)
-			{
-				QSqlRecord record = model->record(index.row());
-				if (RHS_Features == rhsSettings.type)
-				{
-					bool ok1, ok2;
-					testID = record.value("TestID").toInt(&ok1);
-					featureID = record.value("FeatureID").toInt(&ok2);
-					valid = (ok1 && ok2);
-				}
-				else if (RHS_Regressions == rhsSettings.type)
-				{
-					bool ok1, ok2;
-					moduleID = record.value("ModuleID").toInt(&ok1);
-					int regTestID = record.value("RegressionTestID").toInt(&ok2);
-					valid = (ok1 && ok2);
-				}
-			}
-
-			if (valid)
-			{
-				int targetTestID = testID;
-
-				MoveTargetDlg *dlg = new MoveTargetDlg(this, rhsSettings.type, moduleID, targetTestID);
-				if (dlg->exec() == QDialog::Accepted)
-				{
-					if (Utils::MoveFeature(this, featureID, testID, targetTestID))
-					{
-						emit RefreshRHS();
-						QMessageBox::information(this, "Done", R"(You should now manually edit the test procedure and rename any test files on N:\ to refer to the new test number.)");
-					}
-				}
-			}
+			emit RefreshRHS();
+			QMessageBox::information(this, "Done", R"(You should now manually edit the test procedure and rename any test files on N:\ to refer to the new test number.)");
 		}
 	}
 }
@@ -475,70 +463,31 @@ void Widget::on_deleteComponentButton_clicked()
 	}
 }
 
-void Widget::on_viewFeatureButton_clicked()
+void Widget::ViewFeature(int /*testID*/, int featureID)
 {
-	auto selectionModel = ui->tableView->selectionModel();
-	if (selectionModel)
+	QSqlQuery lookup;
+	lookup.prepare("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', "
+				   "f.VaultNumber, t.TestName, f.FeatName, f.FeatDescription, f.FeatProcedure "
+				   "FROM featuretbl AS f "
+				   "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
+				   "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+				   "WHERE FeatureID = :featureID");
+	lookup.bindValue(":featureID", featureID);
+
+	if (Utils::ExecQuery(lookup))
 	{
-		auto selectionList = selectionModel->selectedRows();
-		if (selectionList.size() == 1)
+		if (lookup.next())
 		{
-			QModelIndex index = selectionList.at(0);
-			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
+			QString number = lookup.value("TestNumber").toString();;
+			QString vault = lookup.value("VaultNumber").toString();
+			QString component = lookup.value("TestName").toString();
+			QString name = lookup.value("FeatName").toString();
+			QString description = lookup.value("FeatDescription").toString();
+			QString procedure = lookup.value("FeatProcedure").toString();
 
-			int featureID = 0;
-			int moduleID = 0;
-			int testID = 0 ;
-			bool valid = false;
-
-			if (model)
+			ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, component, name, description, procedure);
+			if (dlg->exec() == QDialog::Accepted)
 			{
-				QSqlRecord record = model->record(index.row());
-				if (RHS_Features == rhsSettings.type)
-				{
-					bool ok1, ok2;
-					testID = record.value("TestID").toInt(&ok1);
-					featureID = record.value("FeatureID").toInt(&ok2);
-					valid = (ok1 && ok2);
-				}
-				else if (RHS_Regressions == rhsSettings.type)
-				{
-					bool ok1, ok2;
-					moduleID = record.value("ModuleID").toInt(&ok1);
-					int regTestID = record.value("RegressionTestID").toInt(&ok2);
-					valid = (ok1 && ok2);
-				}
-			}
-
-			if (valid)
-			{
-				QSqlQuery lookup;
-				lookup.prepare("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', "
-							   "f.VaultNumber, t.TestName, f.FeatName, f.FeatDescription, f.FeatProcedure "
-							   "FROM featuretbl AS f "
-							   "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
-							   "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
-							   "WHERE FeatureID = :featureID");
-				lookup.bindValue(":featureID", featureID);
-
-				if (Utils::ExecQuery(lookup))
-				{
-					if (lookup.next())
-					{
-						QString number = lookup.value("TestNumber").toString();;
-						QString vault = lookup.value("VaultNumber").toString();
-						QString component = lookup.value("TestName").toString();
-						QString name = lookup.value("FeatName").toString();
-						QString description = lookup.value("FeatDescription").toString();
-						QString procedure = lookup.value("FeatProcedure").toString();
-
-						ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, component, name, description, procedure);
-						if (dlg->exec() == QDialog::Accepted)
-						{
-
-						}
-					}
-				}
 			}
 		}
 	}

@@ -37,8 +37,11 @@ private:
 	void setup();
 	void populateRHS(const RHS_Settings &settings);
 	void populateLHS(QTreeWidgetItem *parent, const QString &, const TestProperties &props);
+	void GenericRHSOperation(void (Widget::*featureFunc)(int, int), void (Widget::*regressionFunc)(int, int));
 	void DeleteFeature(int testID, int featureID);
 	void DeleteRegression(int moduleID, int regTestID);
+	void MoveFeature(int testID, int featureID);
+	void ViewFeature(int testID, int featureID);
 
 private slots:
 	void on_databaseButton_clicked();
@@ -51,7 +54,6 @@ private slots:
 
 	void on_moveFeatureButton_clicked();
 	void on_deleteComponentButton_clicked();
-
 	void on_viewFeatureButton_clicked();
 
 signals:
