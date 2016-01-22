@@ -17,7 +17,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Tests</string>
+      <string/>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>

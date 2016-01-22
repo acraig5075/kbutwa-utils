@@ -17,13 +17,16 @@ SOURCES += main.cpp\
         widget.cpp \
     databasedlg.cpp \
     utils.cpp \
-    movetargetdlg.cpp
+    movetargetdlg.cpp \
+    viewtestdlg.cpp
 
 HEADERS  += widget.h \
     databasedlg.h \
     utils.h \
-    movetargetdlg.h
+    movetargetdlg.h \
+    viewtestdlg.h
 
 FORMS    += widget.ui \
     databasedlg.ui \
-    movetargetdlg.ui
+    movetargetdlg.ui \
+    viewtestdlg.ui

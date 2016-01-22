@@ -2,6 +2,7 @@
 #include "ui_widget.h"
 #include "databasedlg.h"
 #include "movetargetdlg.h"
+#include "viewtestdlg.h"
 #include "utils.h"
 #include <QSqlError>
 #include <QDebug>
@@ -468,7 +469,76 @@ void Widget::on_deleteComponentButton_clicked()
 			else
 			{
 				QMessageBox::information(this, "Unsupported", "Only deletion of components having no features is currently supported.\n"
-							"Use the Delete button on the right if you wish to delete a feature or regression.");
+															  "Use the Delete button on the right if you wish to delete a feature or regression.");
+			}
+		}
+	}
+}
+
+void Widget::on_viewFeatureButton_clicked()
+{
+	auto selectionModel = ui->tableView->selectionModel();
+	if (selectionModel)
+	{
+		auto selectionList = selectionModel->selectedRows();
+		if (selectionList.size() == 1)
+		{
+			QModelIndex index = selectionList.at(0);
+			QSqlQueryModel *model = static_cast<QSqlQueryModel *>(ui->tableView->model());
+
+			int featureID = 0;
+			int moduleID = 0;
+			int testID = 0 ;
+			bool valid = false;
+
+			if (model)
+			{
+				QSqlRecord record = model->record(index.row());
+				if (RHS_Features == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					testID = record.value("TestID").toInt(&ok1);
+					featureID = record.value("FeatureID").toInt(&ok2);
+					valid = (ok1 && ok2);
+				}
+				else if (RHS_Regressions == rhsSettings.type)
+				{
+					bool ok1, ok2;
+					moduleID = record.value("ModuleID").toInt(&ok1);
+					int regTestID = record.value("RegressionTestID").toInt(&ok2);
+					valid = (ok1 && ok2);
+				}
+			}
+
+			if (valid)
+			{
+				QSqlQuery lookup;
+				lookup.prepare("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', "
+							   "f.VaultNumber, t.TestName, f.FeatName, f.FeatDescription, f.FeatProcedure "
+							   "FROM featuretbl AS f "
+							   "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
+							   "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+							   "WHERE FeatureID = :featureID");
+				lookup.bindValue(":featureID", featureID);
+
+				if (Utils::ExecQuery(lookup))
+				{
+					if (lookup.next())
+					{
+						QString number = lookup.value("TestNumber").toString();;
+						QString vault = lookup.value("VaultNumber").toString();
+						QString component = lookup.value("TestName").toString();
+						QString name = lookup.value("FeatName").toString();
+						QString description = lookup.value("FeatDescription").toString();
+						QString procedure = lookup.value("FeatProcedure").toString();
+
+						ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, component, name, description, procedure);
+						if (dlg->exec() == QDialog::Accepted)
+						{
+
+						}
+					}
+				}
 			}
 		}
 	}
