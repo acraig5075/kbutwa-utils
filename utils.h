@@ -33,6 +33,14 @@ Q_DECLARE_METATYPE(TestProperties)
 enum RHSType { RHS_None, RHS_Features, RHS_Regressions };
 
 
+struct SearchResults
+{
+	TestProperties test;
+	QString number;
+	QString name;
+	QString description;
+};
+
 namespace Utils
 {
 
@@ -45,6 +53,7 @@ void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props)
 bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID);
 int CountFeatures(int testID);
 bool DeleteFeature(QWidget *parent, int moduleID, int testID);
+QVector<SearchResults> KeywordSearch(const QString &keyword);
 
 }
 

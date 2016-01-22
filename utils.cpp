@@ -192,4 +192,102 @@ bool DeleteFeature(QWidget *parent, int moduleID, int testID)
 	return false;
 }
 
+QVector<SearchResults> KeywordSearch_Components(const QString &keyword)
+{
+	QVector<SearchResults> results;
+	QSqlQuery search;
+	QString query = QString("SELECT ModuleID, TestID, TestNumber, TestName, TestDescription FROM testtbl WHERE TestName LIKE \'%%1%\' OR TestDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
+	search.prepare(query);
+
+	if (ExecQuery(search))
+	{
+		while (search.next())
+		{
+			int moduleID = search.value("ModuleID").toInt();
+			int testID = search.value("TestID").toInt();
+			QString number = search.value("TestNumber").toString();
+			QString name = search.value("TestName").toString();
+			QString description = search.value("TestDescription").toString();
+
+			SearchResults item;
+			item.test.testType = (moduleID <= 10 ? TestProperties::CDC : TestProperties::ACC);
+			item.test.moduleID = moduleID;
+			item.test.testID = testID;
+			item.number = number;
+			item.name = name;
+			item.description = description;
+			results.push_back(item);
+		}
+	}
+	return results;
+}
+
+QVector<SearchResults> KeywordSearch_Features(const QString &keyword)
+{
+	QVector<SearchResults> results;
+	QSqlQuery search;
+	QString query = QString("SELECT FeatureID, TestID, TestNumber, FeatName, FeatDescription FROM featuretbl WHERE FeatName LIKE \'%%1%\' OR FeatDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
+	search.prepare(query);
+
+	if (ExecQuery(search))
+	{
+		while (search.next())
+		{
+			int moduleID = 0;
+			int featureID = search.value("FeatureID").toInt();
+			int testID = search.value("TestID").toInt();
+			QString number = search.value("TestNumber").toString();
+			QString name = search.value("FeatName").toString();
+			QString description = search.value("FeatDescription").toString();
+
+			SearchResults item;
+			item.test.testType = (moduleID <= 10 ? TestProperties::CDC : TestProperties::ACC);
+			item.test.moduleID = moduleID;
+			item.test.testID = testID;
+			item.number = number;
+			item.name = name;
+			item.description = description;
+			results.push_back(item);
+		}
+	}
+	return results;
+}
+
+QVector<SearchResults> KeywordSearch_Regressions(const QString &keyword)
+{
+	QVector<SearchResults> results;
+	QSqlQuery search;
+	QString query = QString("SELECT ModuleID, RegressionTestID, TestName, TestFix FROM regtesttbl WHERE TestFix LIKE \'%%1%\'").arg(keyword);
+	search.prepare(query);
+
+	if (ExecQuery(search))
+	{
+		while (search.next())
+		{
+			int moduleID = search.value("ModuleID").toInt();
+			int testID = search.value("RegressionTestID").toInt();
+			QString number = search.value("TestName").toString();
+			QString description = search.value("TestFix").toString();
+
+			SearchResults item;
+			item.test.testType = (moduleID <= 10 ? TestProperties::CDC : TestProperties::ACC);
+			item.test.moduleID = moduleID;
+			item.test.testID = testID;
+			item.number = number;
+			item.description = description;
+			results.push_back(item);
+		}
+	}
+	return results;
+}
+
+QVector<SearchResults> KeywordSearch(const QString &keyword)
+{
+	QVector<SearchResults> results;
+	results += KeywordSearch_Components(keyword);
+	results += KeywordSearch_Features(keyword);
+	results += KeywordSearch_Regressions(keyword);
+	return results;
+}
+
 }

@@ -56,6 +56,8 @@ private slots:
 	void on_deleteComponentButton_clicked();
 	void on_viewFeatureButton_clicked();
 
+	void on_searchEdit_returnPressed();
+
 signals:
 	void RefreshRHS();
 

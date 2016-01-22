@@ -492,3 +492,17 @@ void Widget::ViewFeature(int /*testID*/, int featureID)
 		}
 	}
 }
+
+void Widget::on_searchEdit_returnPressed()
+{
+	QString search = ui->searchEdit->text();
+	QVector<SearchResults> results = Utils::KeywordSearch(search);
+	if (results.empty())
+	{
+		QMessageBox::information(this, "Search", "0 results found");
+	}
+	else
+	{
+		QMessageBox::information(this, "Search", QString("%1 results found").arg(results.size()));
+	}
+}
