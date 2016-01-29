@@ -21,10 +21,11 @@ namespace
 	}
 }
 
-SearchResultsDlg::SearchResultsDlg(QWidget *parent, QVector<SearchResults> &results) :
+SearchResultsDlg::SearchResultsDlg(QWidget *parent, QVector<SearchResults> &results, SearchResults &selection) :
 	QDialog(parent),
 	ui(new Ui::SearchResultsDlg),
-	m_results(results)
+	m_results(results),
+	m_selection(selection)
 {
 	ui->setupUi(this);
 
@@ -53,4 +54,10 @@ SearchResultsDlg::SearchResultsDlg(QWidget *parent, QVector<SearchResults> &resu
 SearchResultsDlg::~SearchResultsDlg()
 {
 	delete ui;
+}
+
+void SearchResultsDlg::on_SearchResultsDlg_accepted()
+{
+	int current = ui->tableWidget->currentRow();
+	m_selection = m_results.at(current);
 }

@@ -297,4 +297,27 @@ QVector<SearchResults> KeywordSearch(const QString &keyword)
 	return results;
 }
 
+QTreeWidgetItem *FindTreeItem(QTreeWidgetItem *root, const TestProperties &search)
+{
+	if (root)
+	{
+		QTreeWidgetItemIterator it(root);
+		while (*it)
+		{
+			QVariant var = (*it)->data(0, Qt::UserRole);
+			if (!var.isNull() && var.isValid())
+			{
+				TestProperties props = var.value<TestProperties>();
+				if (props.moduleID == search.moduleID)
+				{
+					return (*it);
+				}
+			}
+			++it;
+		}
+		return root;
+	}
+	return nullptr;
+}
+
 }

@@ -494,6 +494,22 @@ void Widget::ViewFeature(int /*testID*/, int featureID)
 	}
 }
 
+int getTreeRootIndex(TestProperties::TestType type)
+{
+	switch (type)
+	{
+	case TestProperties::CDC:
+		return 0;
+	case TestProperties::CDR:
+		return 1;
+	case TestProperties::ACC:
+		return 2;
+	case TestProperties::ACR:
+		return 3;
+	}
+	return -1;
+}
+
 void Widget::on_searchEdit_returnPressed()
 {
 	QString search = ui->searchEdit->text();
@@ -504,9 +520,17 @@ void Widget::on_searchEdit_returnPressed()
 	}
 	else
 	{
-		SearchResultsDlg *dlg = new SearchResultsDlg(this, results);
+		SearchResults selection;
+		SearchResultsDlg *dlg = new SearchResultsDlg(this, results, selection);
+
 		if (dlg->exec() == QDialog::Accepted)
 		{
+			int rootIndex = getTreeRootIndex(static_cast<TestProperties::TestType>(selection.test.testType));
+			QTreeWidgetItem *root = ui->treeWidget->topLevelItem(rootIndex);
+			QTreeWidgetItem *found = Utils::FindTreeItem(root, selection.test);
+
+			if (found)
+				ui->treeWidget->setCurrentItem(found);
 		}
 	}
 }
