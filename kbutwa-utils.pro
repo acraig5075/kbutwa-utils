@@ -33,3 +33,6 @@ FORMS    += widget.ui \
     movetargetdlg.ui \
     viewtestdlg.ui \
     searchresultsdlg.ui
+
+RESOURCES += \
+    assets/icons.qrc

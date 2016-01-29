@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Knowledge Base UnitTest DB Utilities</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="assets/icons.qrc">
+    <normaloff>:/unittest.ico</normaloff>:/unittest.ico</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -40,6 +44,10 @@
       <widget class="QPushButton" name="databaseButton">
        <property name="text">
         <string>Change...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="assets/icons.qrc">
+         <normaloff>:/database.ico</normaloff>:/database.ico</iconset>
        </property>
       </widget>
      </item>
@@ -95,6 +103,10 @@
            <property name="text">
             <string>Delete...</string>
            </property>
+           <property name="icon">
+            <iconset resource="assets/icons.qrc">
+             <normaloff>:/delete.ico</normaloff>:/delete.ico</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -146,6 +158,10 @@
            <property name="text">
             <string>View...</string>
            </property>
+           <property name="icon">
+            <iconset resource="assets/icons.qrc">
+             <normaloff>:/edit.ico</normaloff>:/edit.ico</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -153,12 +169,20 @@
            <property name="text">
             <string>Delete...</string>
            </property>
+           <property name="icon">
+            <iconset resource="assets/icons.qrc">
+             <normaloff>:/delete.ico</normaloff>:/delete.ico</iconset>
+           </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="moveFeatureButton">
            <property name="text">
             <string>Move...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="assets/icons.qrc">
+             <normaloff>:/move.ico</normaloff>:/move.ico</iconset>
            </property>
           </widget>
          </item>
@@ -236,6 +260,8 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="assets/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

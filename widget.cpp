@@ -36,6 +36,9 @@ Widget::Widget(QWidget *parent) :
 	ui->previousSearchButton->hide();
 	ui->nextSearchButton->hide();
 
+	QAction *searchAction = ui->searchEdit->addAction(QIcon(":/search.ico"), QLineEdit::TrailingPosition);
+	connect(searchAction, &QAction::triggered, this, &Widget::on_searchEdit_returnPressed);
+
 	connect(this, SIGNAL(RefreshRHS()), this, SLOT(onRefreshRHS()));
 }
 
