@@ -3,6 +3,7 @@
 #include "databasedlg.h"
 #include "movetargetdlg.h"
 #include "viewtestdlg.h"
+#include "searchresultsdlg.h"
 #include "utils.h"
 #include <QSqlError>
 #include <QDebug>
@@ -503,6 +504,9 @@ void Widget::on_searchEdit_returnPressed()
 	}
 	else
 	{
-		QMessageBox::information(this, "Search", QString("%1 results found").arg(results.size()));
+		SearchResultsDlg *dlg = new SearchResultsDlg(this, results);
+		if (dlg->exec() == QDialog::Accepted)
+		{
+		}
 	}
 }

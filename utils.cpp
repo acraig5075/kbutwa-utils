@@ -196,7 +196,10 @@ QVector<SearchResults> KeywordSearch_Components(const QString &keyword)
 {
 	QVector<SearchResults> results;
 	QSqlQuery search;
-	QString query = QString("SELECT ModuleID, TestID, TestNumber, TestName, TestDescription FROM testtbl WHERE TestName LIKE \'%%1%\' OR TestDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
+	QString query = QString("SELECT CONCAT(m.ModuleCode, t.TestNumber) AS 'TestNumber', t.ModuleID, t.TestID, t.TestName, TestDescription "
+							"FROM testtbl AS t "
+							"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+							"WHERE TestName LIKE \'%%1%\' OR TestDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
 	search.prepare(query);
 
 	if (ExecQuery(search))
@@ -226,14 +229,18 @@ QVector<SearchResults> KeywordSearch_Features(const QString &keyword)
 {
 	QVector<SearchResults> results;
 	QSqlQuery search;
-	QString query = QString("SELECT FeatureID, TestID, TestNumber, FeatName, FeatDescription FROM featuretbl WHERE FeatName LIKE \'%%1%\' OR FeatDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
+	QString query = QString("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', f.FeatureID, f.TestID, f.FeatName, f.FeatDescription, t.ModuleID "
+							"FROM featuretbl AS f "
+							"INNER JOIN testtbl AS t ON f.TestID = t.TestID "
+							"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+							"WHERE FeatName LIKE \'%%1%\' OR FeatDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
 	search.prepare(query);
 
 	if (ExecQuery(search))
 	{
 		while (search.next())
 		{
-			int moduleID = 0;
+			int moduleID = search.value("ModuleID").toInt();
 			int featureID = search.value("FeatureID").toInt();
 			int testID = search.value("TestID").toInt();
 			QString number = search.value("TestNumber").toString();
@@ -270,7 +277,7 @@ QVector<SearchResults> KeywordSearch_Regressions(const QString &keyword)
 			QString description = search.value("TestFix").toString();
 
 			SearchResults item;
-			item.test.testType = (moduleID <= 10 ? TestProperties::CDC : TestProperties::ACC);
+			item.test.testType = (moduleID <= 10 ? TestProperties::CDR : TestProperties::ACR);
 			item.test.moduleID = moduleID;
 			item.test.testID = testID;
 			item.number = number;
