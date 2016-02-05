@@ -23,6 +23,7 @@ Widget::Widget(QWidget *parent) :
 	setDatabaseStatus();
 
 	disableButtons();
+	ui->searchEdit->setEnabled(false);
 
 	QAction *searchAction = ui->searchEdit->addAction(QIcon(":/search.ico"), QLineEdit::TrailingPosition);
 	connect(searchAction, &QAction::triggered, this, &Widget::on_searchEdit_returnPressed);
@@ -69,6 +70,8 @@ void Widget::on_databaseButton_clicked()
 		// reset controls to default
 		ui->treeWidget->clear();
 		ui->tableView->setModel(nullptr);
+		ui->searchEdit->setText("");
+		ui->searchEdit->setEnabled(false);
 		disableButtons();
 
 		// open new database
@@ -85,6 +88,7 @@ void Widget::on_databaseButton_clicked()
 			this->setCursor(QCursor(Qt::WaitCursor));
 			setup();
 			this->unsetCursor();
+			ui->searchEdit->setEnabled(true);
 		}
 		else
 		{
@@ -164,27 +168,30 @@ void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWid
 {
 	ui->deleteComponentButton->setEnabled(false);
 
-	QVariant var = current->data(0, Qt::UserRole);
-	if (!var.isNull() && var.isValid())
+	if (current)
 	{
-		TestProperties props = var.value<TestProperties>();
-		bool hasChildren = current->childCount() > 0;
-
-		switch (props.testType)
+		QVariant var = current->data(0, Qt::UserRole);
+		if (!var.isNull() && var.isValid())
 		{
-		case TestProperties::CDC:
-		case TestProperties::ACC:
-			if (props.testID > 0)
-				populateRHS({ RHS_Features, sqlFeatures, props.testID });
-			else if (props.moduleID > 0 && !hasChildren)
-				populateLHS(current, sqlComponents, props);
-			break;
+			TestProperties props = var.value<TestProperties>();
+			bool hasChildren = current->childCount() > 0;
 
-		case TestProperties::CDR:
-		case TestProperties::ACR:
-			if (props.moduleID > 0)
-				populateRHS({ RHS_Regressions, sqlRegressions, props.moduleID });
-			break;
+			switch (props.testType)
+			{
+			case TestProperties::CDC:
+			case TestProperties::ACC:
+				if (props.testID > 0)
+					populateRHS({ RHS_Features, sqlFeatures, props.testID });
+				else if (props.moduleID > 0 && !hasChildren)
+					populateLHS(current, sqlComponents, props);
+				break;
+
+			case TestProperties::CDR:
+			case TestProperties::ACR:
+				if (props.moduleID > 0)
+					populateRHS({ RHS_Regressions, sqlRegressions, props.moduleID });
+				break;
+			}
 		}
 	}
 }
@@ -419,7 +426,7 @@ void Widget::MoveFeature(int testID, int featureID)
 void Widget::on_deleteComponentButton_clicked()
 {
 	QTreeWidgetItem *current = ui->treeWidget->currentItem();
-	if (current->childCount() == 0)
+	if (current && current->childCount() == 0)
 	{
 		QVariant var = current->data(0, Qt::UserRole);
 		if (!var.isNull() && var.isValid())
@@ -507,24 +514,27 @@ int getTreeRootIndex(TestProperties::TestType type)
 void Widget::on_searchEdit_returnPressed()
 {
 	QString search = ui->searchEdit->text();
-	QVector<SearchResults> results = Utils::KeywordSearch(search);
-	if (results.empty())
+	if (!search.isEmpty())
 	{
-		QMessageBox::information(this, "Search", "0 results found");
-	}
-	else
-	{
-		SearchResults selection;
-		SearchResultsDlg *dlg = new SearchResultsDlg(this, results, selection);
-
-		if (dlg->exec() == QDialog::Accepted)
+		QVector<SearchResults> results = Utils::KeywordSearch(search);
+		if (results.empty())
 		{
-			int rootIndex = getTreeRootIndex(static_cast<TestProperties::TestType>(selection.test.testType));
-			QTreeWidgetItem *root = ui->treeWidget->topLevelItem(rootIndex);
-			QTreeWidgetItem *found = Utils::FindTreeItem(root, selection.test);
+			QMessageBox::information(this, "Search", "0 results found");
+		}
+		else
+		{
+			SearchResults selection;
+			SearchResultsDlg *dlg = new SearchResultsDlg(this, results, selection);
 
-			if (found)
-				ui->treeWidget->setCurrentItem(found);
+			if (dlg->exec() == QDialog::Accepted)
+			{
+				int rootIndex = getTreeRootIndex(static_cast<TestProperties::TestType>(selection.test.testType));
+				QTreeWidgetItem *root = ui->treeWidget->topLevelItem(rootIndex);
+				QTreeWidgetItem *found = Utils::FindTreeItem(root, selection.test);
+
+				if (found)
+					ui->treeWidget->setCurrentItem(found);
+			}
 		}
 	}
 }
