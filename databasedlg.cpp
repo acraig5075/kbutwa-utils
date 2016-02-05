@@ -2,6 +2,7 @@
 #include "ui_databasedlg.h"
 #include <QProcess>
 #include <QSettings>
+#include <QMessageBox>
 
 DatabaseDlg::DatabaseDlg(QWidget *parent, QString &dsn) :
 	QDialog(parent),
@@ -28,11 +29,15 @@ void DatabaseDlg::on_DatabaseDlg_accepted()
 
 void DatabaseDlg::on_odbcButton_clicked()
 {
-	QProcess *process = new QProcess(this);
-	QString file = "\"c:\\windows\\sysWOW64\\odbcad32.exe\"";
-	process->start(file);
-	//QProcess::startDetached("\"c:\\windows\\sysWOW64\\odbcad32.exe\"");
+	//QString file = "c:\\windows\\sysWOW64\\odbcad32.exe";
+	QString file = "c:\\windows\\system32\\odbcad32.exe";
+	bool started = QProcess::startDetached(file);
+	if (!started)
+	{
+		QMessageBox::warning(this, "Warning", "ODBC Sources failed to start\nAre you running with elevated priviledges (i.e. as Administrator)?");
+	}
 }
+
 
 QStringList DatabaseDlg::GetConnectionsFromRegistry()
 {

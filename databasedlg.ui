@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>337</width>
-    <height>91</height>
+    <height>93</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -48,12 +48,22 @@
          <widget class="QPushButton" name="odbcButton">
           <property name="maximumSize">
            <size>
-            <width>75</width>
+            <width>100</width>
             <height>16777215</height>
            </size>
           </property>
           <property name="text">
-           <string>ODBC Admin</string>
+           <string>ODBC Sources</string>
+          </property>
+          <property name="icon">
+           <iconset resource="assets/icons.qrc">
+            <normaloff>:/odbc.png</normaloff>:/odbc.png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -74,7 +84,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="assets/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

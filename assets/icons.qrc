@@ -6,5 +6,6 @@
         <file>move.ico</file>
         <file>search.ico</file>
         <file>unittest.ico</file>
+        <file>odbc.png</file>
     </qresource>
 </RCC>

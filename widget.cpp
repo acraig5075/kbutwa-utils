@@ -41,12 +41,12 @@ void Widget::setDatabaseStatus()
 	if (db.isOpen())
 	{
 		QString status = QString("Connected to DSN %1").arg(dsn);
-		ui->databaseLabel->setStyleSheet("QLabel { color : green; }");
+		ui->databaseLabel->setStyleSheet("QLabel { color : green; font: bold 12px; }");
 		ui->databaseLabel->setText(status);
 	}
 	else
 	{
-		ui->databaseLabel->setStyleSheet("QLabel { color : red; }");
+		ui->databaseLabel->setStyleSheet("QLabel { color : red; font: bold 12px; }");
 		ui->databaseLabel->setText("No database connection.");
 	}
 }
