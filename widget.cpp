@@ -112,7 +112,7 @@ void Widget::setup()
 	auto acrItem = Utils::NewTreeItem(nullptr, { TestProperties::ACR }, "AllyCAD regression");
 
 	QSqlQuery query;
-	query.prepare("SELECT ModuleID, ModuleName FROM moduletbl");
+	query.prepare("SELECT ModuleID, ModuleName FROM ModuleTbl");
 
 	if (Utils::ExecQuery(query))
 	{
@@ -147,16 +147,18 @@ void Widget::setup()
 
 // RHS
 QString sqlFeatures = "SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'Number', f.TestID, f.FeatureID, f.FeatName "
-					  "FROM featuretbl AS f "
-					  "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
-					  "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+					  "FROM FeatureTbl AS f "
+					  "INNER JOIN TestTbl AS t ON f.TestID = t.TestID "
+					  "INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
 					  "WHERE t.TestID = :id";
 QString sqlRegressions = "SELECT TestName AS 'Number', ModuleID, RegressionTestID, TestFix "
-						 "FROM regtesttbl "
+						 "FROM RegTestTbl "
 						 "WHERE ModuleID = :id";
 
 // LHS
-QString sqlComponents = "SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID";
+QString sqlComponents = "SELECT TestName, TestID "
+						"FROM TestTbl "
+						"WHERE ModuleID = :moduleID";
 
 void Widget::on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *)
 {
@@ -241,7 +243,9 @@ void Widget::on_tableView_clicked(const QModelIndex &)
 void Widget::DeleteFeature(int testID, int featureID)
 {
 	QSqlQuery select;
-	select.prepare("SELECT CONCAT(TestNumber, '_', FeatNumber) AS FeatureFormattedName FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+	select.prepare("SELECT CONCAT(TestNumber, '_', FeatNumber) AS FeatureFormattedName "
+				   "FROM FeatureTbl "
+				   "WHERE FeatureID = :featureID AND TestID = :testID");
 	select.bindValue(":featureID", featureID);
 	select.bindValue(":testID", testID);
 
@@ -258,12 +262,12 @@ void Widget::DeleteFeature(int testID, int featureID)
 				db.transaction();
 
 				QSqlQuery modify1;
-				modify1.prepare("DELETE FROM resulttbl WHERE FeatureID = :featureID");
+				modify1.prepare("DELETE FROM ResultTbl WHERE FeatureID = :featureID");
 				modify1.bindValue(":featureID", featureID);
 				bool ok1 = Utils::ExecQuery(modify1);
 
 				QSqlQuery modify2;
-				modify2.prepare("DELETE FROM featuretbl WHERE FeatureID = :featureID AND TestID = :testID");
+				modify2.prepare("DELETE FROM FeatureTbl WHERE FeatureID = :featureID AND TestID = :testID");
 				modify2.bindValue(":featureID", featureID);
 				modify2.bindValue(":testID", testID);
 				bool ok2 = Utils::ExecQuery(modify2);
@@ -294,12 +298,12 @@ void Widget::DeleteRegression(int moduleID, int regTestID)
 		db.transaction();
 
 		QSqlQuery modify1;
-		modify1.prepare("DELETE FROM regresulttbl WHERE RegressionTestID = :regTestID");
+		modify1.prepare("DELETE FROM RegResultTbl WHERE RegressionTestID = :regTestID");
 		modify1.bindValue(":regTestID", regTestID);
 		bool ok1 = Utils::ExecQuery(modify1);
 
 		QSqlQuery modify2;
-		modify2.prepare("DELETE FROM regtesttbl WHERE ModuleID = :moduleID AND RegressionTestID = :regTestID");
+		modify2.prepare("DELETE FROM RegTestTbl WHERE ModuleID = :moduleID AND RegressionTestID = :regTestID");
 		modify2.bindValue(":moduleID", moduleID);
 		modify2.bindValue(":regTestID", regTestID);
 		bool ok2 = Utils::ExecQuery(modify2);
@@ -459,9 +463,9 @@ void Widget::ViewFeature(int /*testID*/, int featureID)
 	QSqlQuery lookup;
 	lookup.prepare("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', "
 				   "f.VaultNumber, t.TestName, f.FeatName, f.FeatDescription, f.FeatProcedure "
-				   "FROM featuretbl AS f "
-				   "INNER JOIN testtbl AS t ON f.TestID = t.TestID "
-				   "INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+				   "FROM FeatureTbl AS f "
+				   "INNER JOIN TestTbl AS t ON f.TestID = t.TestID "
+				   "INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
 				   "WHERE FeatureID = :featureID");
 	lookup.bindValue(":featureID", featureID);
 

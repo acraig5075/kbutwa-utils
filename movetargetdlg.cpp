@@ -32,7 +32,7 @@ void MoveTargetDlg::fill(TestProperties::TestType type1, const QString &label1, 
 	auto item2 = Utils::NewTreeItem(nullptr, { type2 }, label2);
 
 	QSqlQuery query;
-	query.prepare("SELECT ModuleID, ModuleName FROM moduletbl");
+	query.prepare("SELECT ModuleID, ModuleName FROM ModuleTbl");
 
 	auto Between = [](int test, int start, int end) -> bool { return start <= test && test <= end; };
 

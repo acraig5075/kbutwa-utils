@@ -46,7 +46,7 @@ QTreeWidgetItem* NewTreeItem(QTreeWidgetItem *parent, const TestProperties &prop
 void ComponentTestsSubtree(QTreeWidgetItem *parent, const TestProperties &props)
 {
 	QSqlQuery query;
-	query.prepare("SELECT TestName, TestID from testtbl WHERE ModuleID = :moduleID");
+	query.prepare("SELECT TestName, TestID from TestTbl WHERE ModuleID = :moduleID");
 	query.bindValue(":moduleID", props.moduleID);
 
 	if (Utils::ExecQuery(query))
@@ -99,8 +99,8 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 
 		QSqlQuery lookup;
 		lookup.prepare("SELECT RIGHT(CONCAT('000', CAST(MAX(f.FeatNumber) + 1 AS CHAR(3))),3) AS NextFeatNum, t.TestNumber "
-					   "FROM featuretbl AS f "
-					   "INNER JOIN testtbl as t on f.TestID = t.testID "
+					   "FROM FeatureTbl AS f "
+					   "INNER JOIN TestTbl as t on f.TestID = t.testID "
 					   "where f.TestID = :testID");
 		lookup.bindValue(":testID", targetTestID);
 
@@ -116,7 +116,7 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 				if (!featNumber.isEmpty() && !testNumber.isEmpty())
 				{
 					QSqlQuery update;
-					update.prepare("UPDATE featuretbl SET "
+					update.prepare("UPDATE FeatureTbl SET "
 								   "TestID = :testID, "
 								   "FeatNumber = :featNumber, "
 								   "TestNumber = :testNumber "
@@ -151,7 +151,7 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 int CountFeatures(int testID)
 {
 	QSqlQuery count;
-	count.prepare("SELECT COUNT(1) FROM featuretbl WHERE TestID = :testID");
+	count.prepare("SELECT COUNT(1) FROM FeatureTbl WHERE TestID = :testID");
 	count.bindValue(":testID", testID);
 
 	if (ExecQuery(count))
@@ -173,7 +173,7 @@ bool DeleteFeature(QWidget *parent, int moduleID, int testID)
 	if (QMessageBox::Yes == QMessageBox::question(parent, "Delete", "Proceed with deletion?", QMessageBox::Yes|QMessageBox::No))
 	{
 		QSqlQuery deletion;
-		deletion.prepare("DELETE FROM testtbl WHERE ModuleID = :moduleID AND TestID = :testID");
+		deletion.prepare("DELETE FROM TestTbl WHERE ModuleID = :moduleID AND TestID = :testID");
 		deletion.bindValue(":moduleID", moduleID);
 		deletion.bindValue(":testID", testID);
 
@@ -197,8 +197,8 @@ QVector<SearchResults> KeywordSearch_Components(const QString &keyword)
 	QVector<SearchResults> results;
 	QSqlQuery search;
 	QString query = QString("SELECT CONCAT(m.ModuleCode, t.TestNumber) AS 'TestNumber', t.ModuleID, t.TestID, t.TestName, TestDescription "
-							"FROM testtbl AS t "
-							"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+							"FROM TestTbl AS t "
+							"INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
 							"WHERE TestName LIKE \'%%1%\' OR TestDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
 	search.prepare(query);
 
@@ -230,9 +230,9 @@ QVector<SearchResults> KeywordSearch_Features(const QString &keyword)
 	QVector<SearchResults> results;
 	QSqlQuery search;
 	QString query = QString("SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'TestNumber', f.FeatureID, f.TestID, f.FeatName, f.FeatDescription, t.ModuleID "
-							"FROM featuretbl AS f "
-							"INNER JOIN testtbl AS t ON f.TestID = t.TestID "
-							"INNER JOIN moduletbl AS m ON m.ModuleID = t.ModuleID "
+							"FROM FeatureTbl AS f "
+							"INNER JOIN TestTbl AS t ON f.TestID = t.TestID "
+							"INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
 							"WHERE FeatName LIKE \'%%1%\' OR FeatDescription LIKE \'%%2%\'").arg(keyword).arg(keyword);
 	search.prepare(query);
 
@@ -264,7 +264,7 @@ QVector<SearchResults> KeywordSearch_Regressions(const QString &keyword)
 {
 	QVector<SearchResults> results;
 	QSqlQuery search;
-	QString query = QString("SELECT ModuleID, RegressionTestID, TestName, TestFix FROM regtesttbl WHERE TestFix LIKE \'%%1%\'").arg(keyword);
+	QString query = QString("SELECT ModuleID, RegressionTestID, TestName, TestFix FROM RegTestTbl WHERE TestFix LIKE \'%%1%\'").arg(keyword);
 	search.prepare(query);
 
 	if (ExecQuery(search))
