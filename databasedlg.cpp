@@ -1,6 +1,7 @@
 #include "databasedlg.h"
 #include "ui_databasedlg.h"
 #include <QProcess>
+#include <QSettings>
 
 DatabaseDlg::DatabaseDlg(QWidget *parent, QString &dsn) :
 	QDialog(parent),
@@ -9,7 +10,10 @@ DatabaseDlg::DatabaseDlg(QWidget *parent, QString &dsn) :
 {
 	ui->setupUi(this);
 
-	ui->dsnEdit->setText(dsn);
+	QStringList connections = GetConnectionsFromRegistry();
+
+	ui->dsnCombo->addItems(connections);
+	ui->dsnCombo->setCurrentText(dsn);
 }
 
 DatabaseDlg::~DatabaseDlg()
@@ -19,15 +23,19 @@ DatabaseDlg::~DatabaseDlg()
 
 void DatabaseDlg::on_DatabaseDlg_accepted()
 {
-	dsn = ui->dsnEdit->text();
+	dsn = ui->dsnCombo->currentText();
 }
-
-/* Nice idea: Iterate HKLM\Software\Wow6432Node\ODBC\ODBC.INI\ODBC Data Sources and populate combobox instead.
- */
 
 void DatabaseDlg::on_odbcButton_clicked()
 {
 	QProcess *process = new QProcess(this);
-	QString file = "c:\\windows\\sysWOW64\\odbcad32.exe";
+	QString file = "\"c:\\windows\\sysWOW64\\odbcad32.exe\"";
 	process->start(file);
+	//QProcess::startDetached("\"c:\\windows\\sysWOW64\\odbcad32.exe\"");
+}
+
+QStringList DatabaseDlg::GetConnectionsFromRegistry()
+{
+	QSettings settings("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\ODBC\\ODBC.INI\\ODBC Data Sources", QSettings::NativeFormat);
+	return settings.childKeys();
 }

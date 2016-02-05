@@ -13,14 +13,6 @@
 #include <QSqlRecord>
 
 
-//namespace
-//{
-//bool canDelete(const TestProperties &props)
-//{
-//	return props.testID > 0 && props.moduleID > 0 && props.testType > 0;
-//}
-//}
-
 
 Widget::Widget(QWidget *parent) :
 	QWidget(parent),
@@ -31,10 +23,6 @@ Widget::Widget(QWidget *parent) :
 	setDatabaseStatus();
 
 	disableButtons();
-
-	ui->searchLabel->hide();
-	ui->previousSearchButton->hide();
-	ui->nextSearchButton->hide();
 
 	QAction *searchAction = ui->searchEdit->addAction(QIcon(":/search.ico"), QLineEdit::TrailingPosition);
 	connect(searchAction, &QAction::triggered, this, &Widget::on_searchEdit_returnPressed);
@@ -72,7 +60,6 @@ void Widget::disableButtons()
 
 void Widget::on_databaseButton_clicked()
 {
-	dsn = "Development_UnitTest";
 	DatabaseDlg *dlg = new DatabaseDlg(this, dsn);
 	if (dlg->exec() == QDialog::Accepted)
 	{
