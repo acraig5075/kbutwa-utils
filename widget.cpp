@@ -459,6 +459,7 @@ void Widget::on_deleteComponentButton_clicked()
 						{
 							QTreeWidgetItem *parentItem = current->parent();
 							parentItem->removeChild(current);
+							ui->deleteComponentButton->setEnabled(false);
 						}
 					}
 					else

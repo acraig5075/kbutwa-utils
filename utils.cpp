@@ -100,7 +100,7 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 		QSqlQuery lookup;
 		lookup.prepare("SELECT RIGHT(CONCAT('000', CAST(MAX(f.FeatNumber) + 1 AS CHAR(3))),3) AS NextFeatNum, t.TestNumber "
 					   "FROM FeatureTbl AS f "
-					   "INNER JOIN TestTbl as t on f.TestID = t.testID "
+					   "INNER JOIN TestTbl as t on f.TestID = t.TestID "
 					   "where f.TestID = :testID");
 		lookup.bindValue(":testID", targetTestID);
 
