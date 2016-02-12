@@ -268,6 +268,11 @@ void Widget::DeleteFeature(int testID, int featureID)
 				select.finish();
 				db.transaction();
 
+				QSqlQuery modify0;
+				modify0.prepare("DELETE FROM TestStatsTbl WHERE FeatureID = :featureID");
+				modify0.bindValue(":featureID", featureID);
+				bool ok0 = Utils::ExecQuery(modify0);
+
 				QSqlQuery modify1;
 				modify1.prepare("DELETE FROM ResultTbl WHERE FeatureID = :featureID");
 				modify1.bindValue(":featureID", featureID);
@@ -279,7 +284,7 @@ void Widget::DeleteFeature(int testID, int featureID)
 				modify2.bindValue(":testID", testID);
 				bool ok2 = Utils::ExecQuery(modify2);
 
-				if (ok1 && ok2)
+				if (ok0 && ok1 && ok2)
 				{
 					if (db.commit())
 					{
@@ -288,6 +293,15 @@ void Widget::DeleteFeature(int testID, int featureID)
 					}
 				}
 				db.rollback();
+
+				QString error = "The following transactional queries failed, and were rolled-back:\n";
+				if (!ok0)
+					error += modify0.lastQuery();
+				if (!ok1)
+					error += modify1.lastQuery();
+				if (!ok2)
+					error += modify2.lastQuery();
+				QMessageBox::critical(this, "Error", error);
 			}
 		}
 		else
@@ -441,7 +455,7 @@ void Widget::on_deleteComponentButton_clicked()
 
 					if (count == 0)
 					{
-						if (Utils::DeleteFeature(this, props.moduleID, props.testID))
+						if (Utils::DeleteComponent(this, props.moduleID, props.testID))
 						{
 							QTreeWidgetItem *parentItem = current->parent();
 							parentItem->removeChild(current);

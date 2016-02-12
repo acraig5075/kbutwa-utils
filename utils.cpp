@@ -168,7 +168,7 @@ int CountFeatures(int testID)
 	return -1;
 }
 
-bool DeleteFeature(QWidget *parent, int moduleID, int testID)
+bool DeleteComponent(QWidget *parent, int moduleID, int testID)
 {
 	if (QMessageBox::Yes == QMessageBox::question(parent, "Delete", "Proceed with deletion?", QMessageBox::Yes|QMessageBox::No))
 	{

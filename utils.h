@@ -53,7 +53,7 @@ QTreeWidgetItem* FindTreeItem(QTreeWidgetItem *root, const TestProperties &searc
 
 bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID);
 int CountFeatures(int testID);
-bool DeleteFeature(QWidget *parent, int moduleID, int testID);
+bool DeleteComponent(QWidget *parent, int moduleID, int testID);
 QVector<SearchResults> KeywordSearch(const QString &keyword);
 
 }
