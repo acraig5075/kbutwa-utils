@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 					);
 
 	Widget w;
+	w.readPositionSettings();
 	w.show();
 
 	return a.exec();

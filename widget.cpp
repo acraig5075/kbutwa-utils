@@ -11,7 +11,7 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QSqlRecord>
-
+#include <QSettings>
 
 
 Widget::Widget(QWidget *parent) :
@@ -551,4 +551,42 @@ void Widget::on_searchEdit_returnPressed()
 			}
 		}
 	}
+}
+
+void Widget::writePositionSettings()
+{
+	QSettings qsettings( "Alasdair Craig", "Kbutwa Utils" );
+
+	qsettings.beginGroup( "MainWindow" );
+
+	qsettings.setValue( "Geometry", saveGeometry() );
+	//qsettings.setValue( "SaveState", saveState() );
+	qsettings.setValue( "Maximised", isMaximized() );
+	if ( !isMaximized() ) {
+		qsettings.setValue( "Pos", pos() );
+		qsettings.setValue( "Size", size() );
+	}
+
+	qsettings.endGroup();
+}
+
+void Widget::readPositionSettings()
+{
+	QSettings qsettings( "Alasdair Craig", "Kbutwa Utils" );
+
+	qsettings.beginGroup( "MainWindow" );
+
+	restoreGeometry(qsettings.value( "Geometry", saveGeometry() ).toByteArray());
+	//restoreState(qsettings.value( "SaveState", saveState() ).toByteArray());
+	move(qsettings.value( "Pos", pos() ).toPoint());
+	resize(qsettings.value( "Size", size() ).toSize());
+	if ( qsettings.value( "Maximised", isMaximized() ).toBool() )
+		showMaximized();
+
+	qsettings.endGroup();
+}
+
+void Widget::closeEvent( QCloseEvent* )
+{
+	writePositionSettings();
 }

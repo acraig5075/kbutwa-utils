@@ -31,6 +31,10 @@ public:
 	explicit Widget(QWidget *parent = 0);
 	~Widget();
 
+	void writePositionSettings();
+	void readPositionSettings();
+	void closeEvent( QCloseEvent* );
+
 private:
 	void setDatabaseStatus();
 	void disableButtons();
