@@ -3,10 +3,9 @@ An internal-use tool for managing the unit test database of [Knowledge Base Soft
 It's written using C++ and Qt. 
 
 ## Functionality
-It caters for the following:
-1. delete a test
-2. move a test from one component to another
-3. keyword search to locate tests
+1. Delete a test
+2. Move a test from one component to another
+3. Keyword search to locate tests
 
 ## Installation and usage
 1. Needs the MySQL C++ bindings installed
