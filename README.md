@@ -11,3 +11,5 @@ It's written using C++ and Qt.
 1. Needs the MySQL C++ bindings installed
 2. Needs a system-wide database source name to connect to the KBUTWA database
 3. Needs the Qt dlls in the same directory as the .exe.
+
+![Screenshot](screenshot.png?raw=true "Screenshot")
