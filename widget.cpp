@@ -418,7 +418,7 @@ void Widget::on_moveFeatureButton_clicked()
 
 void Widget::on_viewFeatureButton_clicked()
 {
-	GenericRHSOperation(&Widget::ViewFeature, nullptr);
+	GenericRHSOperation(&Widget::ViewFeature, &Widget::ViewRegression);
 }
 
 void Widget::MoveFeature(int testID, int featureID)
@@ -495,14 +495,45 @@ void Widget::ViewFeature(int /*testID*/, int featureID)
 	{
 		if (lookup.next())
 		{
+			QVector<QPair<QString, QString>> labels;
+			labels.push_back(qMakePair(QString("Component"), lookup.value("TestName").toString()));
+			labels.push_back(qMakePair(QString("Feature"), lookup.value("FeatName").toString()));
+			labels.push_back(qMakePair(QString("Description"), lookup.value("FeatDescription").toString()));
+
 			QString number = lookup.value("TestNumber").toString();;
 			QString vault = lookup.value("VaultNumber").toString();
-			QString component = lookup.value("TestName").toString();
-			QString name = lookup.value("FeatName").toString();
-			QString description = lookup.value("FeatDescription").toString();
 			QString procedure = lookup.value("FeatProcedure").toString();
 
-			ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, component, name, description, procedure);
+			ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, labels, procedure);
+			if (dlg->exec() == QDialog::Accepted)
+			{
+			}
+		}
+	}
+}
+
+void Widget::ViewRegression(int /*moduleID*/, int testID)
+{
+	QSqlQuery lookup;
+	lookup.prepare("SELECT m.ModuleName, t.TestName, t.TestFix, t.TestProcedure, t.VaultNumber "
+				   "FROM RegTestTbl AS t "
+				   "INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
+				   "WHERE RegressionTestID = :testID");
+	lookup.bindValue(":testID", testID);
+
+	if (Utils::ExecQuery(lookup))
+	{
+		if (lookup.next())
+		{
+			QVector<QPair<QString, QString>> labels;
+			labels.push_back(qMakePair(QString("Module"), lookup.value("ModuleName").toString()));
+			labels.push_back(qMakePair(QString("Description"), lookup.value("TestFix").toString()));
+
+			QString number = lookup.value("TestName").toString();;
+			QString vault = lookup.value("VaultNumber").toString();
+			QString procedure = lookup.value("TestProcedure").toString();
+
+			ViewTestDlg *dlg = new ViewTestDlg(this, number, vault, labels, procedure);
 			if (dlg->exec() == QDialog::Accepted)
 			{
 			}

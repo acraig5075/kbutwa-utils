@@ -12,7 +12,7 @@ class ViewTestDlg : public QDialog
 	Q_OBJECT
 
 public:
-	explicit ViewTestDlg(QWidget *parent, const QString &number, const QString &vault, const QString &component, const QString &name, const QString &description, const QString &procedure);
+	explicit ViewTestDlg(QWidget *parent, const QString &number, const QString &vault, const QVector<QPair<QString, QString>> &labels, const QString &procedure);
 	~ViewTestDlg();
 
 private:

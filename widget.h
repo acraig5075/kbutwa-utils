@@ -46,6 +46,7 @@ private:
 	void DeleteRegression(int moduleID, int regTestID);
 	void MoveFeature(int testID, int featureID);
 	void ViewFeature(int testID, int featureID);
+	void ViewRegression(int moduleID, int testID);
 
 private slots:
 	void on_databaseButton_clicked();

@@ -47,34 +47,34 @@
       <item>
        <layout class="QFormLayout" name="formLayout">
         <item row="0" column="0">
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="label1Name">
           <property name="text">
-           <string>Component</string>
+           <string>Label1</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="componentEdit"/>
+         <widget class="QLineEdit" name="label1Edit"/>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="label2Name">
           <property name="text">
-           <string>Feature</string>
+           <string>Label2</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLineEdit" name="featureEdit"/>
+         <widget class="QLineEdit" name="label2Edit"/>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_5">
+         <widget class="QLabel" name="label3Name">
           <property name="text">
-           <string>Description</string>
+           <string>Label3</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLineEdit" name="descriptionEdit"/>
+         <widget class="QLineEdit" name="label3Edit"/>
         </item>
        </layout>
       </item>
