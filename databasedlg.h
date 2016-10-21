@@ -24,7 +24,7 @@ private slots:
 private:
 	Ui::DatabaseDlg *ui;
 	QString &dsn;
-	QStringList GetConnectionsFromRegistry();
+    QStringList GetConnectionsFromRegistry();
 };
 
 #endif // DATABASEDLG_H

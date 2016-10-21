@@ -41,6 +41,11 @@ void DatabaseDlg::on_odbcButton_clicked()
 
 QStringList DatabaseDlg::GetConnectionsFromRegistry()
 {
-	QSettings settings("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\ODBC\\ODBC.INI\\ODBC Data Sources", QSettings::NativeFormat);
-	return settings.childKeys();
+    QSettings settings_x86("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\ODBC\\ODBC.INI\\ODBC Data Sources", QSettings::NativeFormat);
+    QSettings settings_x64("\\HKEY_LOCAL_MACHINE\\SOFTWARE\\ODBC\\ODBC.INI\\ODBC Data Sources", QSettings::NativeFormat);
+
+    QStringList ret;
+    ret += settings_x86.childKeys();
+    ret += settings_x64.childKeys();
+    return ret;
 }
