@@ -12,6 +12,7 @@
 #include <QSqlQueryModel>
 #include <QSqlRecord>
 #include <QSettings>
+#include <QAction>
 
 
 Widget::Widget(QWidget *parent) :
@@ -150,17 +151,17 @@ void Widget::setup()
 }
 
 // RHS
-QString sqlFeatures = "SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'Number', f.TestID, f.FeatureID, f.FeatName "
+static QString sqlFeatures = "SELECT CONCAT(m.ModuleCode, t.TestNumber, '_', f.FeatNumber) AS 'Number', f.TestID, f.FeatureID, f.FeatName "
 					  "FROM FeatureTbl AS f "
 					  "INNER JOIN TestTbl AS t ON f.TestID = t.TestID "
 					  "INNER JOIN ModuleTbl AS m ON m.ModuleID = t.ModuleID "
 					  "WHERE t.TestID = :id";
-QString sqlRegressions = "SELECT TestName AS 'Number', ModuleID, RegressionTestID, TestFix "
+static QString sqlRegressions = "SELECT TestName AS 'Number', ModuleID, RegressionTestID, TestFix "
 						 "FROM RegTestTbl "
 						 "WHERE ModuleID = :id";
 
 // LHS
-QString sqlComponents = "SELECT TestName, TestID "
+static QString sqlComponents = "SELECT TestName, TestID "
 						"FROM TestTbl "
 						"WHERE ModuleID = :moduleID";
 

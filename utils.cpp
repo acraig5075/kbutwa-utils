@@ -241,7 +241,6 @@ QVector<SearchResults> KeywordSearch_Features(const QString &keyword)
 		while (search.next())
 		{
 			int moduleID = search.value("ModuleID").toInt();
-			int featureID = search.value("FeatureID").toInt();
 			int testID = search.value("TestID").toInt();
 			QString number = search.value("TestNumber").toString();
 			QString name = search.value("FeatName").toString();
