@@ -94,19 +94,15 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 	Q_ASSERT(isValid);
 	if (isValid)
 	{
-		QSqlDatabase db = QSqlDatabase::database();
-		db.transaction();
-
 		QSqlQuery lookup;
-		lookup.prepare("SELECT RIGHT(CONCAT('000', CAST(MAX(f.FeatNumber) + 1 AS CHAR(3))),3) AS NextFeatNum, t.TestNumber "
-					   "FROM FeatureTbl AS f "
-					   "INNER JOIN TestTbl as t on f.TestID = t.TestID "
-					   "where f.TestID = :testID");
+		isValid = lookup.prepare("SELECT LPAD(MAX(f.FeatNumber) + 1, 3, '0') AS 'NextFeatNum', t.TestNumber "
+								 "FROM FeatureTbl AS f "
+								 "INNER JOIN TestTbl AS t ON f.TestID = t.TestID "
+								 "WHERE f.TestID = :testID "
+								 "GROUP BY t.TestNumber");
 		lookup.bindValue(":testID", targetTestID);
 
-		error = lookup.lastQuery();
-
-		if (ExecQuery(lookup))
+		if (isValid && ExecQuery(lookup))
 		{
 			if (lookup.next())
 			{
@@ -128,18 +124,19 @@ bool MoveFeature(QWidget *parent, int featureID, int srcTestID, int targetTestID
 
 					if (ExecQuery(update))
 					{
-						db.commit();
 						return true;
 					}
 					else
 					{
-						error = update.lastQuery();
+						error = QString("%1\n%2").arg(lookup.lastError().text()).arg(lookup.lastQuery());
 					}
 				}
 			}
 		}
-
-		db.rollback();
+		else
+		{
+			error = QString("%1\n%2").arg(lookup.lastError().text()).arg(lookup.lastQuery());
+		}
 	}
 	else
 		error = QString("Invalid input with parameters featureID = %1, srcTestID = %2, targetTestID = %3").arg(featureID).arg(srcTestID).arg(targetTestID);
